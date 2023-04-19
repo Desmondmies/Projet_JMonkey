@@ -1,4 +1,4 @@
 ./_ressources
 .vscode
 .idea
-./target
+target
