@@ -3,18 +3,14 @@ package fr.univtln.jlaffaill662.Character.platformer;
 import com.jme3.app.Application;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.input.InputManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
@@ -30,7 +26,6 @@ public class PlayerPlatformer extends BaseAppState{
     private final float playerMass = 7f;
     private final Vector3f gravity = new Vector3f(0f, -400f, 0f);
     private final float friction = 5f;
-    // private final float linearDamping = 0.9f;
 
     private Node player;
     private Control playerControl;
@@ -80,7 +75,6 @@ public class PlayerPlatformer extends BaseAppState{
         playerRb.setAngularFactor(0f);
         playerRb.setGravity( gravity );
         playerRb.setFriction( friction );
-        // playerRb.setLinearDamping( linearDamping );
 
         playerRb.setCollisionGroup( CollisionEnum.PLAYER.ordinal() );
         playerRb.setCollideWithGroups( CollisionEnum.DEFAULT.ordinal() );

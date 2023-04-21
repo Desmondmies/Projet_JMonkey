@@ -16,27 +16,36 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Sphere;
 
+import fr.univtln.jlaffaill662.Environment.CollisionEnum;
+import fr.univtln.jlaffaill662.Game.GameManager;
+
 public class Projectile {
 
-    private final static float SHOOTING_TESTBOX_FORCE = 15f;
-    
-    //maybe get info of projectile from GameManager
-    //if player touches power up to change up projectile type
-    //(like dart arrow / cannon / electric gun / water gun)
-    //projectile gets info of which projectile to shoot from gameManager
-    //since player most certainly change info of projectile on collision in GameManager script
+    public enum Type {
+        BALL
+    }
+
+    private static GameManager gameManager;
+
+    private final static float SHOOTING_PERFORMANCE_FORCE = 26f;
 
     public static void shoot(Application app, Vector3f startPos) {
-        //switch to projectile type got from gameManager singleton
         AssetManager am = app.getAssetManager();
         Node rootNode = (Node) app.getViewPort().getScenes().get(0);
         Camera cam = app.getCamera();
         BulletAppState bulletAppState = app.getStateManager().getState(BulletAppState.class);
 
-        Vector3f spawnPos = cam.getWorldCoordinates( new Vector2f(startPos.x, startPos.y), 0f);
-        Vector3f shootDirection = new Vector3f(spawnPos.x, cam.getDirection().y + 0.3f, cam.getDirection().z);
+        if (gameManager == null) gameManager = app.getStateManager().getState(GameManager.class);
 
-        shootTestBox(am, rootNode, bulletAppState, spawnPos, shootDirection);
+        Vector3f spawnPos = cam.getWorldCoordinates( new Vector2f(startPos.x, startPos.y), 0);
+        spawnPos.z -= 0.2f; //prevent z-fighting from cam perspective
+        Vector3f shootDirection = new Vector3f( spawnPos.x - cam.getLocation().x, (spawnPos.y - cam.getLocation().y) + 0.22f, cam.getDirection().z);
+
+        switch ( gameManager.getProjectile() ) {
+            case BALL:
+                shootProjectile(am, rootNode, bulletAppState, spawnPos, shootDirection);
+                break;
+        }
     }
 
     private static Geometry makeProjectileGeometry(String name, Mesh mesh, Material material) {
@@ -47,25 +56,25 @@ public class Projectile {
 
     private static RigidBodyControl makeProjectilePhysics(CollisionShape shape, float mass) { return new RigidBodyControl(shape, mass); }
 
-    private static void shootTestBox(AssetManager assetManager, Node rootNode, BulletAppState bulletAppState, Vector3f startPos, Vector3f shootDir) {
+    private static void shootProjectile(AssetManager assetManager, Node rootNode, BulletAppState bulletAppState, Vector3f startPos, Vector3f shootDir) {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", ColorRGBA.Cyan);
 
         Mesh mesh = new Sphere(10, 10, 0.2f, false, false);
-        Geometry testBox = makeProjectileGeometry("TestBoxProjectile", mesh, mat);
+        Geometry testBox = makeProjectileGeometry("Projectile", mesh, mat);
 
         testBox.setLocalTranslation(startPos);
 
         RigidBodyControl rb = makeProjectilePhysics(new SphereCollisionShape(0.2f), 2);
+        rb.setCollisionGroup( CollisionEnum.PROJECTILE.ordinal() );
+        rb.setCollideWithGroups( CollisionEnum.GHOST.ordinal() );
+        rb.addCollideWithGroup( CollisionEnum.WALL.ordinal() );
+        rb.addCollideWithGroup( CollisionEnum.DEFAULT.ordinal() );
         testBox.addControl(rb);
 
-        rb.setLinearVelocity(shootDir.normalize().mult(SHOOTING_TESTBOX_FORCE));
+        rb.setLinearVelocity(shootDir.normalize().mult(SHOOTING_PERFORMANCE_FORCE));
 
         bulletAppState.getPhysicsSpace().add(rb);
         rootNode.attachChild(testBox);
     }
-
-    // private void shootDart() {}
-    // private void shootWater() {}
-    // private void shootBomb() {}
 }

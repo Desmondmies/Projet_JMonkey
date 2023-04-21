@@ -5,5 +5,7 @@ public enum CollisionEnum {
     PLAYER,
     CAM,
     WALL,
-    GHOST
+    GHOST,
+    PROJECTILE,
+    INTERACTABLE
 }

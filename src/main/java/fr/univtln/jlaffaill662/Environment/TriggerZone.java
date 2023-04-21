@@ -1,7 +1,5 @@
 package fr.univtln.jlaffaill662.Environment;
 
-// import com.jme3.bullet.collision.PhysicsCollisionEvent;
-// import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.GhostControl;
@@ -21,15 +19,5 @@ public class TriggerZone extends Node{
 
         rootNode.attachChild(this);
         bulletAppState.getPhysicsSpace().add(g);
-
-        // bulletAppState.getPhysicsSpace().addCollisionListener( triggerListener );
     }
-
-    // private PhysicsCollisionListener triggerListener = new PhysicsCollisionListener() {
-    //     @Override
-    //     public void collision(PhysicsCollisionEvent event) {
-
-    //     }
-    // };
-    //define collision behavior in gamemanager, where the trigger is created, handles both trigger and player collision events
 }

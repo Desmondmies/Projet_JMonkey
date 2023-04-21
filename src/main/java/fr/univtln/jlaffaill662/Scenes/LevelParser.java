@@ -14,9 +14,12 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 
 import fr.univtln.jlaffaill662.Environment.CollisionEnum;
+import fr.univtln.jlaffaill662.Environment.Door;
+import fr.univtln.jlaffaill662.Environment.DoorWallBtn;
 
 public class LevelParser {
 
@@ -25,7 +28,9 @@ public class LevelParser {
         FLOOR( new ColorRGBA(188, 188, 188, 1f) ),
         WALL( new ColorRGBA(125, 125, 125, 1f) ),
         PLAYER_START_POS( new ColorRGBA(0, 255, 0, 1f) ),
-        ENDGATE( new ColorRGBA(0, 0, 255, 1f) ); //problem, red endgate detected as blue
+        ENDGATE( new ColorRGBA(0, 0, 255, 1f) ), //problem, red endgate detected as blue
+        DOOR( new ColorRGBA(214, 220, 40, 1f) ),
+        BTN_WALL( new ColorRGBA(220, 40, 158, 1f) );
 
         private final ColorRGBA c;
 
@@ -39,26 +44,25 @@ public class LevelParser {
     private static AssetManager assetManager;
     private static BulletAppState bulletAppState;
 
-    // private static RigidBodyControl noMassRB;
-    // private static RigidBodyControl noMassRB = new RigidBodyControl(new BoxCollisionShape(new Vector3f(1f, 1f, 1f)), 0f);
-
     private static Material floorMat;
     private static Material wallMat;
+
+    private static int doorIndex = 0;
+    private static boolean hasConnection = false;
 
     public static void initParser(AssetManager assetManager, BulletAppState bulletAppState) {
         LevelParser.assetManager = assetManager;
         LevelParser.bulletAppState = bulletAppState;
-
-        // LevelParser.noMassRB = noMassRB;
-        // LevelParser.noMassRB.setCollisionGroup( CollisionEnum.DEFAULT.ordinal() );
-        // LevelParser.noMassRB.setCollideWithGroups( CollisionEnum.PLAYER.ordinal() );
-        // bulletAppState.getPhysicsSpace().add(noMassRB);
         
         LevelParser.floorMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        LevelParser.floorMat.setColor("Color", ColorRGBA.Gray);
+        Texture floorImg = assetManager.loadTexture("Textures/Environment/Floor.png");
+        LevelParser.floorMat.setTexture("ColorMap", floorImg);
+        // LevelParser.floorMat.setColor("Color", ColorRGBA.Gray);
 
         LevelParser.wallMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        LevelParser.wallMat.setColor("Color", ColorRGBA.Black);
+        Texture wallImg = assetManager.loadTexture("Textures/Environment/Wall.png");
+        LevelParser.wallMat.setTexture("ColorMap", wallImg);
+        // LevelParser.wallMat.setColor("Color", ColorRGBA.Black);
     }
     
     public static Node parse(String filename) {
@@ -70,6 +74,8 @@ public class LevelParser {
 
         Node floorLayout = new Node("FloorLayout");
         Node wallLayout = new Node("WallLayout");
+        Node doorLayout = new Node("DoorLayout");
+        Node btnWallLayout = new Node("Btn_WallLayout");
 
         int width = img.getWidth();
         int height = img.getHeight();
@@ -94,19 +100,47 @@ public class LevelParser {
                 if (color.equals( LevelData.FLOOR.getColor() )) { floorLayout.attachChild( createFloor(worldX, worldY) ); continue; }
                 if (color.equals( LevelData.WALL.getColor() )) { wallLayout.attachChild( createWall(worldX, worldY) ); continue; }
 
+                if (color.equals( LevelData.DOOR.getColor() )) { doorLayout.attachChild( addDoor(worldX, worldY) ); continue; }
+                if (color.equals( LevelData.BTN_WALL.getColor() )) { btnWallLayout.attachChild( addDoorBtn(worldX, worldY) ); continue; }
+
                 if (color.equals( LevelData.PLAYER_START_POS.getColor() )) { level.attachChild( placePlayerSpawnPoint(worldX, worldY) ); continue; }
 
-                // if ( r == 255)
-                //     System.out.println("sfkl");
                 if (color.equals( LevelData.ENDGATE.getColor() )) { level.attachChild( placeEndGate(worldX, worldY) ); continue; }
+
+
             }
         }
 
         level.attachChild(floorLayout);
         level.attachChild(wallLayout);
+        level.attachChild(doorLayout);
+        level.attachChild(btnWallLayout);
 
         return level;
-    }    
+    }
+
+    private static void increaseConnection() {
+        hasConnection = false;
+        doorIndex++;
+    }
+
+    private static Spatial addDoor(int x, int y) {
+        Door d = new Door(doorIndex, assetManager, bulletAppState, x, y);
+        
+        if (hasConnection) increaseConnection();
+        else hasConnection = true;
+
+        return d;
+    }
+
+    private static Spatial addDoorBtn(int x, int y) {
+        DoorWallBtn d = new DoorWallBtn(doorIndex, assetManager, bulletAppState, x, y);
+
+        if (hasConnection) increaseConnection();
+        else hasConnection = true;
+
+        return d;
+    }
 
     private static Spatial createFloor(int x, int y) {
         Spatial floor = new Geometry("Floor", new Box(1f, 1f, 1f));
@@ -150,7 +184,6 @@ public class LevelParser {
         // Spatial endGate = new Geometry("EndGate", new Box(y, x, 0f));
         Node endGate = new Node("EndGate");
         endGate.setLocalTranslation(x, y, 0f);
-        //add endgate collision group?
         return endGate;
     }
 }
