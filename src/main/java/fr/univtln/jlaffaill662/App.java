@@ -19,7 +19,7 @@ import fr.univtln.jlaffaill662.Scenes.LevelSelector;
  */
 public class App extends SimpleApplication
 {
-    private final Vector3f WORLD_CAM_POS = new Vector3f( 9f, 7, 25);
+    private final Vector3f WORLD_CAM_POS = new Vector3f( 9f, 7, 30);
     private final Vector3f WORLD_CAM_LOOKAT = new Vector3f( 9f, 6.5f, 0);
 
     private BulletAppState bulletAppState;
@@ -38,6 +38,8 @@ public class App extends SimpleApplication
 
         AppSettings settings = new AppSettings(true);
         settings.setTitle("Teddy Wanna Live !!!");
+        settings.setMinResolution(800, 600);
+        settings.setResolution(800, 600);
         app.setSettings(settings);
         
         app.start();
@@ -47,6 +49,7 @@ public class App extends SimpleApplication
     public void simpleInitApp() {
         System.out.println("\nGAME STARTED ! (Press Escape to quit)");
         setDisplayStatView(false);
+        setDisplayFps(false);
 
         cam.setLocation( WORLD_CAM_POS );
         cam.lookAt(WORLD_CAM_LOOKAT, Vector3f.UNIT_Y);
@@ -56,6 +59,18 @@ public class App extends SimpleApplication
 
         initPhysics();
         setupAllAppStates();
+
+        showArcade();
+    }
+
+    private void showArcade() {
+        ImageDisplay.showImage(assetManager, 
+                                guiNode, 
+                                "Images/arcade.png", 
+                                settings.getWidth() / 2, 
+                                -(settings.getHeight() / 2), 
+                                800, 
+                                600);
     }
 
     public boolean getGameEnded() { return gameEnded; }

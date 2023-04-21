@@ -27,7 +27,7 @@ public class Projectile {
 
     private static GameManager gameManager;
 
-    private final static float SHOOTING_PERFORMANCE_FORCE = 26f;
+    private final static float SHOOTING_PERFORMANCE_FORCE = 28f;
 
     public static void shoot(Application app, Vector3f startPos) {
         AssetManager am = app.getAssetManager();
