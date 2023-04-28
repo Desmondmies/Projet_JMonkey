@@ -10,17 +10,23 @@ import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 
 public class DoorWallBtn extends Node{
+
+    private Texture on_tex;
+    private Material btnMat;
+
     public DoorWallBtn(int id, AssetManager assetManager, BulletAppState bulletAppState, int posX, int posY) {
         super("DoorWallBtn");
         setLocalTranslation(posX, posY, 0f);
 
         Geometry wall = new Geometry("Wall", new Box(1f, 1f, 1f));
 
-        Material mWall = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        Texture doorWallImg = assetManager.loadTexture("Textures/Environment/WallBtn.png");
-        mWall.setTexture("ColorMap", doorWallImg);
+        on_tex = assetManager.loadTexture("Textures/Environment/WallBtn_on.png");
 
-        wall.setMaterial(mWall);
+        btnMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture doorWallImg = assetManager.loadTexture("Textures/Environment/WallBtn_off.png");
+        btnMat.setTexture("ColorMap", doorWallImg);
+
+        wall.setMaterial(btnMat);
         wall.setLocalTranslation(posX, posY, 0f);
 
         setUserData("ID", id);
@@ -32,4 +38,6 @@ public class DoorWallBtn extends Node{
         
         attachChild(wall);
     }
+
+    public void changeToOnTexture() { btnMat.setTexture("ColorMap", on_tex); }
 }

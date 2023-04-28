@@ -3,17 +3,17 @@ package fr.univtln.jlaffaill662.Character.platformer;
 import com.jme3.app.Application;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.asset.AssetManager;
+import com.jme3.asset.TextureKey;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.input.InputManager;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.Control;
-import com.jme3.scene.shape.Box;
+import com.jme3.texture.Texture;
 
 import fr.univtln.jlaffaill662.Environment.CollisionEnum;
 import fr.univtln.jlaffaill662.Scenes.ILevel;
@@ -33,25 +33,33 @@ public class PlayerPlatformer extends BaseAppState{
     private Vector3f startPos;
 
     private Node rootNode;
-    // private AssetManager assetManager;
+    private AssetManager assetManager;
     private AppStateManager stateManager;
     private BulletAppState bulletAppState;
 
     @Override
     protected void initialize(Application app) {
         rootNode = (Node) app.getViewPort().getScenes().get(0);
-        // assetManager = app.getAssetManager();
+        assetManager = app.getAssetManager();
         stateManager = app.getStateManager();
 
-        // Spatial playerSpatial = assetManager.loadAsset("Models/Player/Platformer.java");
-        Geometry testPlayer = new Geometry("TestPlayer", new Box(0.5f, playerHeight, 0.5f) );
-        Material m = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        m.setColor("Color", ColorRGBA.Blue);
-        testPlayer.setMaterial(m);
+        Node model = (Node) assetManager.loadModel("Models/Teddy_Bear.gltf");
+        Node playerModel = (Node) model.getChild(0);
+
+        Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        TextureKey playerTex = new TextureKey("Textures/Teddy_Bear.png", false);
+        playerTex.setGenerateMips(false);
         
+        Texture t = assetManager.loadTexture(playerTex);
+        m.setTexture("ColorMap", t);
+
+        playerModel.setMaterial(m);
+        playerModel.scale(0.5f);
+        playerModel.updateModelBound();
+        playerModel.setLocalTranslation(0f, -1.5f, 0f);
+
         player = new Node("PlayerPlatform");
-        player.attachChild(testPlayer);
-        // player.attachChild(playerSpatial);
+        player.attachChild(playerModel);
 
         setDefaultPosition( app.getStateManager().getState(LevelSelector.class).getCurrentLevel() );
         setupPhysics();

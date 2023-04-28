@@ -14,6 +14,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 
 import fr.univtln.jlaffaill662.App;
+import fr.univtln.jlaffaill662.Fx.AudioPlayer;
 
 public class PlayerCameraControls extends AbstractControl{
 
@@ -23,9 +24,12 @@ public class PlayerCameraControls extends AbstractControl{
     private Application app;
     private App appMain;
 
+    private AudioPlayer audioPlayer;
+
     public PlayerCameraControls(Application app) {
         this.app = app;
         this.inputManager = app.getInputManager();
+        audioPlayer = AudioPlayer.getInstance();
     }
 
     @Override
@@ -61,6 +65,7 @@ public class PlayerCameraControls extends AbstractControl{
     private void shoot(){
         //shoot from cursor to scene, cam direction
         Projectile.shoot(app, spatial.getLocalTranslation());
+        audioPlayer.playShoot();
     }
 
     @Override

@@ -4,11 +4,10 @@ import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
-import com.jme3.math.ColorRGBA;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
+import com.jme3.texture.Texture;
 
 import fr.univtln.jlaffaill662.App;
 
@@ -22,12 +21,14 @@ public class PlayerCamera extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        Geometry testCamBox = new Geometry("TestCam", new Box(10f, 10f, 10f)); //pixel size, it's displayed in guiNode
+        Geometry testCamBox = new Geometry("TestCam", new Box(17f, 17f, 1f)); //pixel size, it's displayed in guiNode
         Material m = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        m.setColor("Color", new ColorRGBA(0, 0, 0, 0));
+        Texture t = app.getAssetManager().loadTexture("Images/crosshair.png");
+        m.setTexture("ColorMap", t);
         m.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         testCamBox.setMaterial(m);
-        testCamBox.setQueueBucket(RenderQueue.Bucket.Transparent);
+
+        testCamBox.setLocalTranslation(0, 0, -10);
 
         cameraPlayer = new Node("CameraPlayer");
         cameraPlayer.attachChild(testCamBox);

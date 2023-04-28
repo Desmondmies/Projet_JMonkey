@@ -14,8 +14,10 @@ import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -25,7 +27,9 @@ import com.jme3.texture.Texture;
 import fr.univtln.jlaffaill662.App;
 import fr.univtln.jlaffaill662.Character.camera.Projectile;
 import fr.univtln.jlaffaill662.Environment.CollisionEnum;
+import fr.univtln.jlaffaill662.Environment.DoorWallBtn;
 import fr.univtln.jlaffaill662.Environment.TriggerZone;
+import fr.univtln.jlaffaill662.Fx.AudioPlayer;
 import fr.univtln.jlaffaill662.Fx.FireParticle;
 import fr.univtln.jlaffaill662.Scenes.LevelSelector;
 
@@ -48,6 +52,7 @@ public class GameManager extends BaseAppState {
     private LevelSelector level;
 
     private App simpleApp;
+    private AudioPlayer audioPlayer;
 
     private Vector3f initCamPos;
     private Vector3f initLavaPos;
@@ -70,6 +75,8 @@ public class GameManager extends BaseAppState {
         bulletAppState = app.getStateManager().getState(BulletAppState.class);
         level = app.getStateManager().getState(LevelSelector.class);
         cam = app.getCamera();
+
+        audioPlayer = AudioPlayer.getInstance();
 
         initCamPos = cam.getLocation();
 
@@ -96,11 +103,11 @@ public class GameManager extends BaseAppState {
         lava.attachChild(l);
 
         FireParticle f1 = new FireParticle(assetManager, new Vector3f(2.5f, 102f, 3f));
-        FireParticle f2 = new FireParticle(assetManager, new Vector3f(5.5f, 100f, 4f));
-        FireParticle f3 = new FireParticle(assetManager, new Vector3f(8.6f, 101f, 3.5f));
+        FireParticle f2 = new FireParticle(assetManager, new Vector3f(5.5f, 102f, 4f));
+        FireParticle f3 = new FireParticle(assetManager, new Vector3f(8.6f, 102f, 3.5f));
         FireParticle f4 = new FireParticle(assetManager, new Vector3f(10.7f, 102f, 4.3f));
-        FireParticle f5 = new FireParticle(assetManager, new Vector3f(13.4f, 100f, 3.3f));
-        FireParticle f6 = new FireParticle(assetManager, new Vector3f(17.2f, 101f, 4.7f));
+        FireParticle f5 = new FireParticle(assetManager, new Vector3f(13.4f, 102f, 3.3f));
+        FireParticle f6 = new FireParticle(assetManager, new Vector3f(15.3f, 102f, 4f));
         lava.attachChild(f1);
         lava.attachChild(f2);
         lava.attachChild(f3);
@@ -123,6 +130,17 @@ public class GameManager extends BaseAppState {
                                 
         endGateNode.setLocalTranslation( level.getCurrentLevel().getEndGatePos() );
         endGate = endGateNode.getControl(GhostControl.class);
+
+        Geometry endGateVisual = new Geometry("EndGateVisual", new Box(1f, 2f, 0.05f));
+        Material endGateM = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture t = assetManager.loadTexture("Textures/Environment/endgate.png");
+        endGateM.setTexture("ColorMap", t);
+        endGateM.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        endGateVisual.setQueueBucket(Bucket.Transparent);
+
+        endGateVisual.setMaterial(endGateM);
+        endGateVisual.setLocalTranslation(0f, 1f, 0f);
+        endGateNode.attachChild(endGateVisual);
 
         rootNode.attachChild(endGateNode);
     }
@@ -204,11 +222,15 @@ public class GameManager extends BaseAppState {
                     else break;
 
                     for (Node door : doorsList) {
+                        //remove door if correct btn is activated, play sound
                         if (door.getUserData("ID").toString().equals( btnKey )) {
                             door.getChild("DoorGeometry").getControl(RigidBodyControl.class).setEnabled(false);;
                             door.removeFromParent();
                             doorsList.remove(door);
+                            ((DoorWallBtn) btn).changeToOnTexture();
                             btnDoorsList.remove(btn);
+
+                            audioPlayer.playSwitch();
                             return;
                         }                        
                     }

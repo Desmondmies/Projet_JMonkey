@@ -7,7 +7,6 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -15,6 +14,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.texture.Texture;
 
 import fr.univtln.jlaffaill662.Environment.CollisionEnum;
 import fr.univtln.jlaffaill662.Game.GameManager;
@@ -58,7 +58,8 @@ public class Projectile {
 
     private static void shootProjectile(AssetManager assetManager, Node rootNode, BulletAppState bulletAppState, Vector3f startPos, Vector3f shootDir) {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Cyan);
+        Texture ballTex = assetManager.loadTexture("Textures/ball.png");
+        mat.setTexture("ColorMap", ballTex);
 
         Mesh mesh = new Sphere(10, 10, 0.2f, false, false);
         Geometry testBox = makeProjectileGeometry("Projectile", mesh, mat);

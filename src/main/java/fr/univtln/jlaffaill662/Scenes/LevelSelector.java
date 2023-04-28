@@ -12,12 +12,10 @@ public class LevelSelector extends BaseAppState {
     private ILevel currentLevel;
 
     private Node rootNode;
-    // private AssetManager assetManager;
 
     @Override
     protected void initialize(Application app) {
         rootNode = (Node) app.getViewPort().getScenes().get(0);
-        // assetManager = app.getAssetManager();
 
         setupLevelParser( app );
         setupLevel();

@@ -5,6 +5,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -21,6 +22,7 @@ public class Door extends Node{
         Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         Texture doorImg = assetManager.loadTexture("Textures/Environment/Door.png");
         m.setTexture("ColorMap", doorImg);
+        m.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
 
         geo.setMaterial(m);
         geo.setLocalTranslation(posX, posY+1, 0f);

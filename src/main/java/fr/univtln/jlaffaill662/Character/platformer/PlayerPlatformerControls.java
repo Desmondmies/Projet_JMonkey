@@ -1,5 +1,7 @@
 package fr.univtln.jlaffaill662.Character.platformer;
 
+import com.jme3.anim.AnimComposer;
+import com.jme3.anim.tween.action.Action;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
@@ -11,6 +13,7 @@ import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
@@ -25,8 +28,6 @@ public class PlayerPlatformerControls extends AbstractControl{
 
     private final InputMapping left = new InputMapping("Left", new int[] { KeyInput.KEY_A, KeyInput.KEY_LEFT });
     private final InputMapping right = new InputMapping("Right", new int[] { KeyInput.KEY_D, KeyInput.KEY_RIGHT });
-    // private final InputMapping up = new InputMapping("Up", new int[] { KeyInput.KEY_W, KeyInput.KEY_UP });
-    // private final InputMapping down = new InputMapping("Down", new int[] { KeyInput.KEY_S, KeyInput.KEY_DOWN });
     private final InputMapping jump = new InputMapping("Jump", new int[] { KeyInput.KEY_SPACE });
 
     private final float speed = 45f;
@@ -34,7 +35,6 @@ public class PlayerPlatformerControls extends AbstractControl{
     private float movingForceFactor = 1f; //default to 1f, not on ground, set it to 0.7f
     private final float decelarationFactor = 0.15f;
     private final float additionnalGravityPull = 10f;
-    // private final float airDragForce = 0.7f;
 
     private Vector3f moveDir = new Vector3f(0f, 0f, 0f);
 
@@ -56,6 +56,12 @@ public class PlayerPlatformerControls extends AbstractControl{
 
     private RigidBodyControl floorRb;
 
+    private AnimComposer playerAnim;
+    private Spatial playerGeo;
+    private Quaternion playerGeoQuaternion;
+    private Action idleAction;
+    private final float MAX_ANIM_TIME = 10000f;
+
     public PlayerPlatformerControls(Node rootNode, InputManager inputManager, BulletAppState bulletAppState) {
         floorLayout = (Node) rootNode.getChild("FloorLayout");
         this.inputManager = inputManager;
@@ -69,6 +75,7 @@ public class PlayerPlatformerControls extends AbstractControl{
             spatialRb = (RigidBodyControl) spatial.getControl(RigidBodyControl.class);
             initInputs();
             initPhysics();
+            initAnim();
         }
     }
 
@@ -79,22 +86,28 @@ public class PlayerPlatformerControls extends AbstractControl{
     public void setCanMove(boolean value) { canMove = value; }
 
     private void initInputs(){
-        // inputManager.deleteMapping( SimpleApplication.INPUT_MAPPING_MEMORY);
-        // inputManager.deleteMapping( SimpleApplication.INPUT_MAPPING_CAMERA_POS );
-        // inputManager.deleteMapping( SimpleApplication.INPUT_MAPPING_HIDE_STATS );
 
         if (!isAlreadyMapped(left)) addMapping(left);
         if (!isAlreadyMapped(right)) addMapping(right);
-        // if (!isAlreadyMapped(up)) addMapping(up);
-        // if (!isAlreadyMapped(down)) addMapping(down);
         if (!isAlreadyMapped(jump)) addMapping(jump);
 
-        inputManager.addListener(analogListener, left.getMappingName(), right.getMappingName());// up.getMappingName(), down.getMappingName() );
-        inputManager.addListener(actionListener, jump.getMappingName() );
+        inputManager.addListener(analogListener, left.getMappingName(), right.getMappingName());
+        inputManager.addListener(actionListener, jump.getMappingName(), left.getMappingName(), right.getMappingName() );
     }
 
     private void initPhysics(){
         bulletAppState.getPhysicsSpace().addCollisionListener(collisionListener);
+    }
+
+    private void initAnim() {
+        playerGeo = ((Node)spatial).getChild(0);
+
+        playerAnim = playerGeo.getControl(AnimComposer.class);
+        playerGeoQuaternion = playerGeo.getLocalRotation();
+
+        playerAnim.setCurrentAction("IDLE");
+        idleAction = playerAnim.getCurrentAction();
+        playerAnim.setEnabled(true);
     }
 
     private boolean isAlreadyMapped(InputMapping input) { return inputManager.hasMapping( input.getMappingName() ); }
@@ -107,7 +120,17 @@ public class PlayerPlatformerControls extends AbstractControl{
             if (isJumping) return;
             if (!isGrounded) return;
 
-            if (name.equals("Jump") && !isPressed) isJumping = true;
+            if (name.equals("Jump") && !isPressed) { 
+                isJumping = true;
+                playerAnim.setTime(MAX_ANIM_TIME);
+                playerAnim.setCurrentAction("JUMP");
+                playerAnim.setGlobalSpeed(0.7f);
+            }
+            if ((name.equals("Left") || name.equals("Right")) && !isPressed) { 
+                playerAnim.setTime(MAX_ANIM_TIME);
+                playerAnim.setCurrentAction("RUN"); 
+                playerAnim.setGlobalSpeed(1f);
+            }
         };
     };
 
@@ -123,8 +146,6 @@ public class PlayerPlatformerControls extends AbstractControl{
 
             if (name.equals("Left")) moveDir.x -= speed;
             if (name.equals("Right")) moveDir.x += speed;
-            // if (name.equals("Up")) moveDir.z -= speed;
-            // if (name.equals("Down")) moveDir.z += speed;
 
             moveDir.mult( tpf );
         };
@@ -154,10 +175,7 @@ public class PlayerPlatformerControls extends AbstractControl{
         jump(tpf);
         move();
 
-        if (!isGrounded) {
-            additionnalGravity();
-            // airDrag();
-        } 
+        if (!isGrounded) additionnalGravity();
     }
 
     private void limitYSpeed() {
@@ -171,7 +189,6 @@ public class PlayerPlatformerControls extends AbstractControl{
         if (res.size() <= 0) return;
         CollisionResult r = res.getClosestCollision();
         res.clear();
-        // RigidBodyControl rb = r.getGeometry().getControl(RigidBodyControl.class);
         setFloorNode( r.getGeometry() );
     }
 
@@ -184,10 +201,26 @@ public class PlayerPlatformerControls extends AbstractControl{
     }
 
     private void move() {
-        if (moveDir.distance(Vector3f.ZERO) <= 0.1f) return;
+        if (moveDir.distance(Vector3f.ZERO) <= 0.1f) {
+            playerGeoQuaternion.lookAt(Vector3f.UNIT_Y.negate(), Vector3f.UNIT_Z);
+
+            if (!playerAnim.getCurrentAction().equals(idleAction)){
+                playerAnim.setCurrentAction("IDLE");
+                playerAnim.setGlobalSpeed(1f);
+            }
+            return;
+        }
         spatialRb.applyCentralForce( moveDir.mult(movingForceFactor) );
 
-        if (moveDir.distance(Vector3f.ZERO) > 0.01f) decelarate();
+        if (moveDir.distance(Vector3f.ZERO) > 0.01f) {
+            
+            if (moveDir.x > 0.1f) playerGeoQuaternion.lookAt(Vector3f.UNIT_Y.negate(), Vector3f.UNIT_X);
+            else if (moveDir.x < -0.1f) playerGeoQuaternion.lookAt(Vector3f.UNIT_Y.negate(), Vector3f.UNIT_X.negate());
+
+            decelarate();
+        }
+
+        playerGeo.setLocalRotation(playerGeoQuaternion);
     }
 
     private void doJump() {
@@ -206,10 +239,6 @@ public class PlayerPlatformerControls extends AbstractControl{
     private void additionnalGravity() {
         moveDir = moveDir.add( Vector3f.UNIT_Y.negate().mult( additionnalGravityPull ) );
     }
-
-    // private void airDrag() {
-    //     moveDir = moveDir.add( new Vector3f( -moveDir.x * airDragForce, 0f, -moveDir.z * airDragForce) );
-    // }
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) { }

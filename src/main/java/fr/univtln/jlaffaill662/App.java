@@ -10,6 +10,7 @@ import com.jme3.system.AppSettings;
 import fr.univtln.jlaffaill662.Character.camera.PlayerCamera;
 import fr.univtln.jlaffaill662.Character.platformer.PlayerPlatformer;
 import fr.univtln.jlaffaill662.Environment.SkyboxAppState;
+import fr.univtln.jlaffaill662.Fx.AudioPlayer;
 import fr.univtln.jlaffaill662.Fx.ImageDisplay;
 import fr.univtln.jlaffaill662.Game.GameManager;
 import fr.univtln.jlaffaill662.Scenes.LevelSelector;
@@ -29,6 +30,8 @@ public class App extends SimpleApplication
     private GameManager gameManager;
 
     private boolean gameEnded = false;
+
+    private AudioPlayer audioPlayer;
 
     public static void main( String[] args )
     {
@@ -50,6 +53,9 @@ public class App extends SimpleApplication
         System.out.println("\nGAME STARTED ! (Press Escape to quit)");
         setDisplayStatView(false);
         setDisplayFps(false);
+
+        audioPlayer = AudioPlayer.getInstance();
+        audioPlayer.initialize(assetManager, rootNode);
 
         cam.setLocation( WORLD_CAM_POS );
         cam.lookAt(WORLD_CAM_LOOKAT, Vector3f.UNIT_Y);
@@ -81,6 +87,8 @@ public class App extends SimpleApplication
         stateManager.detach(playerCamera);
         stateManager.detach(gameManager);
 
+        audioPlayer.stopAmbiant();
+
         bulletAppState.cleanup();
     }
 
@@ -93,6 +101,7 @@ public class App extends SimpleApplication
                                 settings.getHeight() / 2, 
                                 350, 
                                 100);
+        audioPlayer.playGameOver();
     }   
 
     public void win() {
@@ -104,6 +113,7 @@ public class App extends SimpleApplication
                                 settings.getHeight() / 2, 
                                 350, 
                                 100);
+        audioPlayer.playVictory();
     }
 
     private void initPhysics() {
