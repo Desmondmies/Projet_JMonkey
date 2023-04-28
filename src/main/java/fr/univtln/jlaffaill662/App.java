@@ -99,8 +99,8 @@ public class App extends SimpleApplication
                                 "./Images/GAME_OVER.png", 
                                 settings.getWidth() / 2, 
                                 settings.getHeight() / 2, 
-                                350, 
-                                100);
+                                450, 
+                                150);
         audioPlayer.playGameOver();
     }   
 
@@ -111,8 +111,8 @@ public class App extends SimpleApplication
                                 "./Images/VICTORY.png", 
                                 settings.getWidth() / 2, 
                                 settings.getHeight() / 2, 
-                                350, 
-                                100);
+                                450, 
+                                150);
         audioPlayer.playVictory();
     }
 

@@ -232,7 +232,7 @@ public class GameManager extends BaseAppState {
 
                             audioPlayer.playSwitch();
                             return;
-                        }                        
+                        }
                     }
                 }
             }
